@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "GameObject.h"
+#include "Player.h"
 
 class GameScene : public Scene
 {
@@ -11,5 +12,6 @@ public:
 	void draw();
 	void update();
 private:
+	Player* player;
 };
 
