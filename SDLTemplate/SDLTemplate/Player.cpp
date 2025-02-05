@@ -26,18 +26,24 @@ void Player::start()
 	reloadTime = 8;
 	currentReloadTime = reloadTime;
 
+	wingGunsReloadTime = 15;
+	currentWingGunsReloadTime = wingGunsReloadTime;
+
 	// Query the texture to set our width and height
 	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 
 	// Initialize sound
-	sound = SoundManager::loadSound("sound/334227__jradcoolness__laser.ogg");
+	//sound = SoundManager::loadSound("sound/334227__jradcoolness__laser.ogg");
+	sound = SoundManager::loadSound("sound/vine-boom.mp3");
 }
 
 void Player::update()
 {
-	if (currentReloadTime > 0)
-	{
+	if (currentReloadTime > 0) {
 		currentReloadTime--;
+	}
+	if (currentWingGunsReloadTime > 0) {
+		currentWingGunsReloadTime--;
 	}
 
 	if (app.keyboard[SDL_SCANCODE_SPACE] &&
@@ -54,6 +60,23 @@ void Player::update()
 		SoundManager::playSound(sound);
 
 		currentReloadTime = reloadTime;
+	}
+
+	if (app.keyboard[SDL_SCANCODE_G] && currentWingGunsReloadTime <= 0) {
+		Bullet* wingBulletTop = new Bullet(x + (width / 4), y + height - 5, 1, 0, 5);
+		Bullet* wingBulletBot = new Bullet(x + (width / 4), y - 5, 1, 0, 5);
+		getScene()->addGameObject(wingBulletTop);
+		getScene()->addGameObject(wingBulletBot);
+		wingBulletTop->start();
+		wingBulletBot->start();
+
+		bullets.push_back(wingBulletTop);
+		bullets.push_back(wingBulletBot);
+
+
+		SoundManager::playSound(sound);
+
+		currentWingGunsReloadTime = wingGunsReloadTime;
 	}
 
 	for (int i = 0; i < bullets.size(); i++)

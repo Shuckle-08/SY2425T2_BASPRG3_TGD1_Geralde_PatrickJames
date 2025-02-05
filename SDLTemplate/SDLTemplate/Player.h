@@ -27,6 +27,9 @@ private:
 	float reloadTime;
 	float currentReloadTime;
 
+	float wingGunsReloadTime;
+	float currentWingGunsReloadTime;
+
 	SDL_Texture* texture;
 	Mix_Chunk* sound;
 
