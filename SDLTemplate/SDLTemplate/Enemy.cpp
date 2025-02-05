@@ -1,30 +1,32 @@
-#include "Player.h"
+#include "Enemy.h"
 
-Player::~Player()
+Enemy::Enemy()
 {
-	// Memory manage our bullets. Delete all bullets on player deletion/death
-	for (int i = 0; i < bullets.size(); i++)
-	{
-		delete bullets[i];
-	}
-
-	bullets.clear();
+	x = 1400;
+	y = rand() % 400 + 200;
 }
 
-void Player::start()
+Enemy::~Enemy()
+{
+}
+
+void Enemy::start()
 {
 	// Load Texture
-	texture = loadTexture("gfx/player.png");
+	texture = loadTexture("gfx/enemy.png");
 
-	// Initialize to avaoid garbage values
-	x = (SCREEN_WIDTH/8);
-	y = (SCREEN_HEIGHT/2) - 10;
+	directionX = -1;
+	directionY = -1;
+
 	width = 0;
 	height = 0;
-	speed = 5;
+	speed = 2;
 
-	reloadTime = 8;
+	reloadTime = 60;
 	currentReloadTime = reloadTime;
+
+	directionChangeTime = rand() % 300 + 180;
+	currentDirectionChangeTime = directionChangeTime;
 
 	// Query the texture to set our width and height
 	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
@@ -33,19 +35,41 @@ void Player::start()
 	sound = SoundManager::loadSound("sound/334227__jradcoolness__laser.ogg");
 }
 
-void Player::update()
+void Enemy::update()
 {
+	x += directionX * speed;
+	y += directionY * speed;
+
+#pragma region Direction Change Logic
+	if (currentDirectionChangeTime > 0)
+	{
+		currentDirectionChangeTime--;
+	}
+
+	if (currentDirectionChangeTime <= 0)
+	{
+		directionY = -directionY;
+		currentDirectionChangeTime = directionChangeTime;
+	}
+#pragma endregion
+
 	if (currentReloadTime > 0)
 	{
 		currentReloadTime--;
 	}
 
-	if (app.keyboard[SDL_SCANCODE_SPACE] &&
-		currentReloadTime <= 0)
+	if (currentReloadTime <= 0)
 	{
-		Bullet* bullet = new Bullet(x + width - 2,
+		float dx;
+		float dy;
+
+		calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(),
+			x, y,
+			&dx, &dy);
+
+		Bullet* bullet = new Bullet(x,
 			y + (height / 2) - 5,
-			1, 0, 5);
+			dx, dy, 5);
 
 		getScene()->addGameObject(bullet);
 
@@ -58,7 +82,7 @@ void Player::update()
 
 	for (int i = 0; i < bullets.size(); i++)
 	{
-		if (bullets[i]->getPositionX() > SCREEN_WIDTH)
+		if (bullets[i]->getPositionX() < 0)
 		{
 			// Cache the variable so we can delete it later
 			// We can't delete it after erasing from the vector (leaked pointer)
@@ -73,39 +97,24 @@ void Player::update()
 			break;
 		}
 	}
-
-	if (app.keyboard[SDL_SCANCODE_W])
-	{
-		y -= speed;
-	}
-
-	if (app.keyboard[SDL_SCANCODE_S])
-	{
-		y += speed;
-	}
-
-	if (app.keyboard[SDL_SCANCODE_A])
-	{
-		x -= speed;
-	}
-
-	if (app.keyboard[SDL_SCANCODE_D])
-	{
-		x += speed;
-	}
 }
 
-void Player::draw()
+void Enemy::draw()
 {
 	blit(texture, x, y);
 }
 
-int Player::GetPositionX()
+void Enemy::SetPlayerTarget(Player* player)
+{
+	playerTarget = player;
+}
+
+int Enemy::GetPositionX()
 {
 	return x;
 }
 
-int Player::GetPositionY()
+int Enemy::GetPositionY()
 {
 	return y;
 }
