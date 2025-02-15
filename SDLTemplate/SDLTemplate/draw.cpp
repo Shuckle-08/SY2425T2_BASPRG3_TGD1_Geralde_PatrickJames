@@ -101,8 +101,8 @@ void blitScale(SDL_Texture* texture, int x, int y, int* width, int* height, int 
 	dest.h = tempH * scale;
 
 	// Why? so it can automatically change the collisions for width and height, since width and height are in a separate universe
-	*width *= scale;
-	*height *= scale;
+	*width = tempW * scale;
+	*height = tempH * scale;
 
 	SDL_RenderCopy(app.renderer, texture, NULL, &dest);
 }

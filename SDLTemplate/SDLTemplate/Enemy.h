@@ -7,6 +7,7 @@
 #include "Scene.h"
 #include <vector>
 #include "util.h"
+#include "Explosion.h"
 #include "Player.h"
 
 class Enemy : public GameObject
@@ -20,6 +21,8 @@ public:
 	void SetPlayerTarget(Player* player);
 	int GetPositionX();
 	int GetPositionY();
+	int GetWidth();
+	int GetHeight();
 private:
 	int x;
 	int y;

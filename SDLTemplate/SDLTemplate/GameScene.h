@@ -3,7 +3,9 @@
 #include "GameObject.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Explosion.h"
 #include <vector>
+#include "text.h"
 
 class GameScene : public Scene
 {
@@ -14,14 +16,30 @@ public:
 	void draw();
 	void update();
 private:
-	void Spawn();
+	void SpawnEnemy();
+	void DespawnEnemy(Enemy* enemy);
+
+	void DoCollisionLogic();
+	void DoSpawningLogic();
+
+	void spawnExplosion(int positionX, int positionY);
+
+	int points;
 
 	Player* player;
 	Enemy* enemy;
+	Explosion* explosion;
 
 	float spawnTime;
 	float currentSpawnTime;
 
-	std::vector<Enemy*> spawnedEnemies;
-};
+	//Background
+	int bgX;
+	int bgY;
+	int bgWidth;
+	int bgHeight;
+	SDL_Texture* bgTexture;
 
+	std::vector<Enemy*> spawnedEnemies;
+	std::vector<Explosion*> spawnedExplosions;
+};

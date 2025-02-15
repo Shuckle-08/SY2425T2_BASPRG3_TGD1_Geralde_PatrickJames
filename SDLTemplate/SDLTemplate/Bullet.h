@@ -3,11 +3,15 @@
 #include "common.h"
 #include "draw.h"
 
-class Bullet :
-    public GameObject
+enum class Side {
+    PLAYER_SIDE,
+    ENEMY_SIDE
+};
+
+class Bullet : public GameObject
 {
 public:
-    Bullet(int positionX, int positionY, float directionX, float directionY, int speed);
+    Bullet(int positionX, int positionY, float directionX, float directionY, int speed, Side side);
     void start();
     void update();
     void draw();
@@ -16,12 +20,15 @@ public:
     int getPositionY();
     int getWidth();
     int getHeight();
+    Side getSide();
 
 private:
     int x;
     int y;
     int width;
     int height;
+
+    Side side;
 
     int speed;
 
