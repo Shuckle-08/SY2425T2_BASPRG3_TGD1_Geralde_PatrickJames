@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Explosion.h"
+#include "PowerUp.h"
 #include <vector>
 #include "text.h"
 
@@ -29,9 +30,13 @@ private:
 	Player* player;
 	Enemy* enemy;
 	Explosion* explosion;
+	PowerUp* powerUp;
 
 	float spawnTime;
 	float currentSpawnTime;
+
+	float powerUpSpawnTime;
+	float currentpowerUpSpawnTime;
 
 	//Background
 	int bgX;
@@ -42,4 +47,5 @@ private:
 
 	std::vector<Enemy*> spawnedEnemies;
 	std::vector<Explosion*> spawnedExplosions;
+	
 };

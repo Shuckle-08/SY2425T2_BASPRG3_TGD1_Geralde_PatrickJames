@@ -23,6 +23,8 @@ void GameScene::start()
 	bgHeight = 0;
 	spawnTime = 300;
 	currentSpawnTime = spawnTime;
+	powerUpSpawnTime = 100;
+	currentpowerUpSpawnTime = powerUpSpawnTime;
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -44,6 +46,8 @@ void GameScene::draw()
 	Scene::draw();
 
 	drawText(110, 20, 255, 255, 255, TEXT_CENTER, "POINTS: %03d", points);
+	drawText(82, 50, 255, 255, 255, TEXT_CENTER, "LEVEL: %01d", player->GetLevel());
+
 
 	if (!player->IsAlive())
 	{
@@ -57,6 +61,16 @@ void GameScene::update()
 
 	DoSpawningLogic();
 	DoCollisionLogic();
+
+	if (currentpowerUpSpawnTime > 0) {
+		currentpowerUpSpawnTime--;
+	}
+
+	if (currentpowerUpSpawnTime <= 0) {
+		currentpowerUpSpawnTime = powerUpSpawnTime;
+		powerUp = new PowerUp();
+		this->addGameObject(powerUp);
+	}
 }
 
 void GameScene::SpawnEnemy()
@@ -136,6 +150,19 @@ void GameScene::DoCollisionLogic()
 			}
 		}
 	}
+
+	for (int i = 0; i < objects.size(); i++) {
+		PowerUp* powerUp = dynamic_cast<PowerUp*>(objects[i]);
+
+		if (powerUp != NULL) {
+			int collision = checkCollision(player->GetPositionX(), player->GetPositionY(), player->GetWidth(), player->GetHeight(), powerUp->getPositionX(), powerUp->getPositionY(), powerUp->getWidth(), powerUp->getHeight());
+
+			if (collision == 1) {
+				player->LevelUp();
+				delete powerUp;
+			}
+		}
+	}
 }
 
 void GameScene::DoSpawningLogic()
@@ -154,7 +181,7 @@ void GameScene::DoSpawningLogic()
 
 	for (int i = 0; i < spawnedEnemies.size(); i++)
 	{
-		if (spawnedEnemies[i]->GetPositionX() < 0)
+		if (spawnedEnemies[i]->GetPositionY() > SCREEN_HEIGHT)
 		{
 			// Cache the variable so we can delete it later
 			// We can't delete it after erasing from the vector (leaked pointer)
@@ -169,8 +196,6 @@ void GameScene::DoSpawningLogic()
 			break;
 		}
 	}
-
-
 }
 
 void GameScene::spawnExplosion(int positionX, int positionY)

@@ -17,11 +17,12 @@ void Player::start()
 	texture = loadTexture("gfx/player.png");
 
 	// Initialize to avoid garbage values
-	x = (SCREEN_WIDTH/8);
-	y = (SCREEN_HEIGHT/2) - 10;
+	x = (SCREEN_WIDTH / 2) - 30;
+	y = (SCREEN_HEIGHT) - 150;
 	width = 0;
 	height = 0;
 	speed = 5;
+	level = 1;
 
 	reloadTime = 8;
 	currentReloadTime = reloadTime;
@@ -74,20 +75,10 @@ void Player::update()
 	if (app.keyboard[SDL_SCANCODE_SPACE] &&
 		currentReloadTime <= 0)
 	{
-		Bullet* bullet = new Bullet(x + width - 2,
-			y + (height / 2) - 5,
-			1, 0, 5, Side::PLAYER_SIDE);
-
-		getScene()->addGameObject(bullet);
-
-		bullets.push_back(bullet);
-
-		SoundManager::playSound(sound);
-
-		currentReloadTime = reloadTime;
+		ShootMainGun();
 	}
 
-	if (app.keyboard[SDL_SCANCODE_G] && currentWingGunsReloadTime <= 0) {
+	/*if (app.keyboard[SDL_SCANCODE_G] && currentWingGunsReloadTime <= 0) {
 		Bullet* wingBulletTop = new Bullet(x + (width / 4), y + height - 5, 1, 0, 5, Side::PLAYER_SIDE);
 		Bullet* wingBulletBot = new Bullet(x + (width / 4), y - 5, 1, 0, 5, Side::PLAYER_SIDE);
 		getScene()->addGameObject(wingBulletTop);
@@ -101,7 +92,7 @@ void Player::update()
 		SoundManager::playSound(sound);
 
 		currentWingGunsReloadTime = wingGunsReloadTime;
-	}
+	}*/
 
 	for (int i = 0; i < bullets.size(); i++)
 	{
@@ -154,10 +145,53 @@ void Player::update()
 	}
 }
 
+void Player::ShootMainGun()
+{
+	switch (level) {
+	case 1: {
+		Bullet* bullet = new Bullet(x + (width / 2) - 12, y, 0, -1, 5, Side::PLAYER_SIDE);
+		getScene()->addGameObject(bullet);
+		bullets.push_back(bullet);
+		break;
+	}
+	case 2: {
+		Bullet* bullet1 = new Bullet(x + (width / 2) - 24, y, 0, -1, 5, Side::PLAYER_SIDE);
+		Bullet* bullet2 = new Bullet(x + (width / 2) , y, 0, -1, 5, Side::PLAYER_SIDE);
+
+		getScene()->addGameObject(bullet1);
+		getScene()->addGameObject(bullet2);
+
+		bullets.push_back(bullet1);
+		bullets.push_back(bullet2);
+		break;
+	}
+	case 3: {
+		Bullet* bullet1 = new Bullet(x + (width / 2) - 32, y, -0.2, -1, 5, Side::PLAYER_SIDE); // Left spread
+		Bullet* bullet2 = new Bullet(x + (width / 2) - 12, y, 0, -1, 5, Side::PLAYER_SIDE);        // Centered
+		Bullet* bullet3 = new Bullet(x + (width / 2) + 8, y, 0.2, -1, 5, Side::PLAYER_SIDE); // Right spread
+
+		getScene()->addGameObject(bullet1);
+		getScene()->addGameObject(bullet2);
+		getScene()->addGameObject(bullet3);
+
+		bullets.push_back(bullet1);
+		bullets.push_back(bullet2);
+		bullets.push_back(bullet3);
+		break;
+	}
+	default:
+		break;
+	}
+
+	SoundManager::playSound(sound);
+
+	currentReloadTime = reloadTime;
+}
+
 void Player::draw()
 {
 	if (!isAlive) return;
-	blit(texture, x, y);
+	blitRotate(texture, x, y, -90);
 }
 
 int Player::GetPositionX()
@@ -180,6 +214,11 @@ int Player::GetHeight()
 	return height;
 }
 
+int Player::GetLevel()
+{
+	return level;
+}
+
 bool Player::IsAlive()
 {
 	return isAlive;
@@ -188,4 +227,12 @@ bool Player::IsAlive()
 void Player::DoDeath()
 {
 	isAlive = false;
+}
+
+void Player::LevelUp()
+{
+	level++;
+	if (level > 3) {
+		level = 3;
+	}
 }

@@ -18,8 +18,13 @@ public:
 	int GetPositionY();
 	int GetWidth();
 	int GetHeight();
+	int	GetLevel();
 	bool IsAlive();
+
 	void DoDeath();
+	void LevelUp();
+	void ShootMainGun();
+
 private:
 	int x;
 	int y;
@@ -27,6 +32,7 @@ private:
 	int height;
 
 	int speed;
+	int level;
 	bool isAlive;
 
 	float reloadTime;

@@ -2,8 +2,8 @@
 
 Enemy::Enemy()
 {
-	x = 1400;
-	y = rand() % 400 + 200;
+	x = rand() % 400 + 200;
+	y = 0;
 }
 
 Enemy::~Enemy()
@@ -16,7 +16,7 @@ void Enemy::start()
 	texture = loadTexture("gfx/enemy.png");
 
 	directionX = -1;
-	directionY = -1;
+	directionY = 1;
 
 	width = 0;
 	height = 0;
@@ -42,9 +42,9 @@ void Enemy::update()
 	x += directionX * speed;
 	y += directionY * speed;
 
-	if (y + height > SCREEN_HEIGHT || y < 0)
+	if (x + width > SCREEN_WIDTH || x < 0)
 	{
-		directionY = -directionY;
+		directionX = -directionX;
 	}
 
 #pragma region Direction Change Logic
@@ -55,7 +55,7 @@ void Enemy::update()
 
 	if (currentDirectionChangeTime <= 0)
 	{
-		directionY = -directionY;
+		directionX = -directionX;
 		currentDirectionChangeTime = directionChangeTime;
 	}
 #pragma endregion
@@ -76,8 +76,8 @@ void Enemy::update()
 			x, y,
 			&dx, &dy);
 
-		Bullet* bullet = new Bullet(x,
-			y + (height / 2) - 5,
+		Bullet* bullet = new Bullet(x + (width / 2) - 10,
+			y + height - 10,
 			dx, dy, 5, Side::ENEMY_SIDE);
 
 		getScene()->addGameObject(bullet);
@@ -110,7 +110,7 @@ void Enemy::update()
 
 void Enemy::draw()
 {
-	blit(texture, x, y);
+	blitRotate(texture, x, y, -90);
 }
 
 void Enemy::SetPlayerTarget(Player* player)
