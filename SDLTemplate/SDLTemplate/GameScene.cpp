@@ -21,14 +21,14 @@ void GameScene::start()
 	bgY = 0;
 	bgWidth = 0;
 	bgHeight = 0;
-	spawnTime = 300;
+	spawnTime = 100;
 	currentSpawnTime = spawnTime;
-	powerUpSpawnTime = 100;
+	powerUpSpawnTime = 500;
 	currentpowerUpSpawnTime = powerUpSpawnTime;
 
 	for (int i = 0; i < 3; i++)
 	{
-		SpawnEnemy();
+		SpawnEnemy(false);
 	}
 
 	initFonts();
@@ -73,17 +73,19 @@ void GameScene::update()
 	}
 }
 
-void GameScene::SpawnEnemy()
+void GameScene::SpawnEnemy(bool isBoss)
 {
-	enemy = new Enemy();
+	enemy = new Enemy(isBoss);
 	this->addGameObject(enemy);
 	enemy->SetPlayerTarget(player);
-
 	spawnedEnemies.push_back(enemy);
 }
 
+
 void GameScene::DespawnEnemy(Enemy* enemy)
 {
+	spawnExplosion(enemy->GetPositionX(), enemy->GetPositionY());
+
 	int index = -1;
 	for (int i = 0; i < spawnedEnemies.size(); i++)
 	{
@@ -104,6 +106,7 @@ void GameScene::DespawnEnemy(Enemy* enemy)
 
 void GameScene::DoCollisionLogic()
 {
+#pragma region BulletCollision
 	// Check for collision
 	for (int i = 0; i < objects.size(); i++)
 	{
@@ -140,8 +143,10 @@ void GameScene::DoCollisionLogic()
 
 					if (collision == 1)
 					{
-						//std::cout << "Enemy Has Been Hit!" << std::endl;
-						spawnExplosion(currentEnemy->GetPositionX(), currentEnemy->GetPositionY());
+						currentEnemy->takeDamage();
+					}
+
+					if (currentEnemy->getHealth() == 0) {
 						DespawnEnemy(currentEnemy);
 						points++;
 						break;
@@ -150,7 +155,8 @@ void GameScene::DoCollisionLogic()
 			}
 		}
 	}
-
+#pragma endregion
+#pragma region PowerUp Pickup
 	for (int i = 0; i < objects.size(); i++) {
 		PowerUp* powerUp = dynamic_cast<PowerUp*>(objects[i]);
 
@@ -163,6 +169,7 @@ void GameScene::DoCollisionLogic()
 			}
 		}
 	}
+#pragma endregion
 }
 
 void GameScene::DoSpawningLogic()
@@ -172,9 +179,25 @@ void GameScene::DoSpawningLogic()
 		currentSpawnTime--;
 	}
 
-	if (currentSpawnTime <= 0)
+	bool bossExists = false;
+	for (Enemy* enemy : spawnedEnemies)
 	{
-		SpawnEnemy();
+		if (enemy->getIsBoss()) {
+			bossExists = true;
+			break;
+		}
+	}
+
+	if (currentSpawnTime <= 0 && !bossExists)
+	{
+		if (points % 20 == 0 && points != 0) 
+		{
+			SpawnEnemy(true);
+		}
+		else
+		{
+			SpawnEnemy(false);
+		}
 
 		currentSpawnTime = spawnTime;
 	}
@@ -183,20 +206,16 @@ void GameScene::DoSpawningLogic()
 	{
 		if (spawnedEnemies[i]->GetPositionY() > SCREEN_HEIGHT)
 		{
-			// Cache the variable so we can delete it later
-			// We can't delete it after erasing from the vector (leaked pointer)
 			Enemy* enemyToErase = spawnedEnemies[i];
 			spawnedEnemies.erase(spawnedEnemies.begin() + i);
-
 			delete enemyToErase;
 
-			// We can't mutate (change) our vector while looping inside it
-			// this might crash on the next loop iteration
-			// To counter that, we only delete one bullet per frame
 			break;
 		}
 	}
 }
+
+
 
 void GameScene::spawnExplosion(int positionX, int positionY)
 {

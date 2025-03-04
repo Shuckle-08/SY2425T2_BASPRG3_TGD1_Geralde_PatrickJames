@@ -19,7 +19,9 @@ void Explosion::start()
 	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 
 	//Initialize Sound
-	sound = SoundManager::loadSound("sound/245372__quaker540__hq-explosion.ogg");
+	//sound = SoundManager::loadSound("sound/245372__quaker540__hq-explosion.ogg");
+	sound = SoundManager::loadSound("sound/vine-boom.mp3");
+	
 	//0-128
 	sound->volume = 20;
 

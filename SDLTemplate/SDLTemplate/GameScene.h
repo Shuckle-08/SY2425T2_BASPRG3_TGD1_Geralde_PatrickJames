@@ -17,7 +17,7 @@ public:
 	void draw();
 	void update();
 private:
-	void SpawnEnemy();
+	void SpawnEnemy(bool isBoss);
 	void DespawnEnemy(Enemy* enemy);
 
 	void DoCollisionLogic();

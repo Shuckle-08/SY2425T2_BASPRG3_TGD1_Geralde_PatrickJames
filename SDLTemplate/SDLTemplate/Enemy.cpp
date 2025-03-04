@@ -1,9 +1,33 @@
 #include "Enemy.h"
 
-Enemy::Enemy()
+Enemy::Enemy(bool isBoss) : isBoss(isBoss)
 {
-	x = rand() % 400 + 200;
-	y = 0;
+	if (isBoss) {
+		x = 20;
+		y = 100;
+
+		directionX = 2;
+		directionY = 0;
+
+		health = 50;
+		shootingPattern = 1;
+
+		reloadTime = 120;
+		currentReloadTime = reloadTime;
+		bossShotCounter = 0;
+	}
+	else {
+		x = rand() % 400 + 200;
+		y = 0;
+
+		directionX = -1;
+		directionY = 1;
+
+		health = 1;
+
+		reloadTime = 60;
+		currentReloadTime = reloadTime;
+	}
 }
 
 Enemy::~Enemy()
@@ -15,15 +39,9 @@ void Enemy::start()
 	// Load Texture
 	texture = loadTexture("gfx/enemy.png");
 
-	directionX = -1;
-	directionY = 1;
-
 	width = 0;
 	height = 0;
 	speed = 2;
-
-	reloadTime = 60;
-	currentReloadTime = reloadTime;
 
 	directionChangeTime = rand() % 300 + 180;
 	currentDirectionChangeTime = directionChangeTime;
@@ -60,35 +78,122 @@ void Enemy::update()
 	}
 #pragma endregion
 
-	if (currentReloadTime > 0)
-	{
-		currentReloadTime--;
+#pragma region Shooting Logic
+	if (!isBoss) {
+			if (currentReloadTime > 0)
+			{
+				currentReloadTime--;
+			}
+
+			if (currentReloadTime <= 0)
+			{
+				float dx;
+				float dy;
+
+				if (!playerTarget->IsAlive()) return;
+
+				calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(),
+					x, y,
+					&dx, &dy);
+
+				Bullet* bullet = new Bullet(x + (width / 2) - 10,
+					y + height - 10,
+					dx, dy, 5, Side::ENEMY_SIDE);
+
+				getScene()->addGameObject(bullet);
+
+				bullets.push_back(bullet);
+
+				SoundManager::playSound(sound);
+
+				currentReloadTime = reloadTime;
+			}
 	}
+	else if (isBoss) { //Boss Shooting Pattern
+		if (currentReloadTime > 0) {
+			currentReloadTime--;
+		}
 
-	if (currentReloadTime <= 0)
-	{
-		float dx;
-		float dy;
+		if (currentReloadTime <= 0) {
+			switch (shootingPattern) {
+			case 0: // Bullet Line
+				for (int i = 0; i < 10; i++) {
+					float dx, dy;
+					if (!playerTarget->IsAlive()) return;
+					calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(), x, y, &dx, &dy);
 
-		if (!playerTarget->IsAlive()) return;
+					Bullet* bullet = new Bullet(x + (width / 2) - 50 + (i * 20), y + height - 10, dx, dy, 10, Side::ENEMY_SIDE);
+					getScene()->addGameObject(bullet);
+					bullets.push_back(bullet);
+				}
+				break;
 
-		calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(),
-			x, y,
-			&dx, &dy);
+			case 1: // Double Line Bullet Pattern with Wider Gaps
+				if (currentReloadTime > 0) {
+					currentReloadTime--;
+				}
 
-		Bullet* bullet = new Bullet(x + (width / 2) - 10,
-			y + height - 10,
-			dx, dy, 5, Side::ENEMY_SIDE);
+				if (currentReloadTime <= 0) {
+					for (int i = 0; i < 5; i++) { // Fires 5 bullets in each row
+						float dx, dy;
+						if (!playerTarget->IsAlive()) return;
 
-		getScene()->addGameObject(bullet);
+						calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(), x, y, &dx, &dy);
 
-		bullets.push_back(bullet);
+						int spacing = 100; // Increase this value to widen the gaps
 
-		SoundManager::playSound(sound);
+						// First row of bullets (Left side)
+						Bullet* bullet1 = new Bullet(x + (width / 2) - 100 + (i * spacing), y + height - 10, dx, dy, 5, Side::ENEMY_SIDE);
+						getScene()->addGameObject(bullet1);
+						bullets.push_back(bullet1);
 
-		currentReloadTime = reloadTime;
+						// Second row of bullets (Right side)
+						Bullet* bullet2 = new Bullet(x + (width / 2) - 85 + (i * spacing), y + height - 80, dx, dy, 5, Side::ENEMY_SIDE);
+						getScene()->addGameObject(bullet2);
+						bullets.push_back(bullet2);
+					}
+
+					SoundManager::playSound(sound);
+
+					bossShotCounter++; // Track the number of bullets fired
+					currentReloadTime = reloadTime; // Wait before next wave
+
+					// Change attack pattern after 2 shots
+					if (bossShotCounter >= 2) {
+						shootingPattern = rand() % 3; // Switch to another attack pattern
+						bossShotCounter = 0;
+					}
+				}
+				break;
+
+			case 2: // Constant Spread Shot
+				for (int i = -4; i <= 4; i++) {
+					float angleOffset = i * (M_PI / 18);
+					float dx = sin(angleOffset);
+					float dy = cos(angleOffset);
+
+					Bullet* bullet = new Bullet(x + (width / 2), y + height - 10, dx, dy, 5, Side::ENEMY_SIDE);
+					getScene()->addGameObject(bullet);
+					bullets.push_back(bullet);
+				}
+				break;
+			}
+
+			// Play sound after firing
+			SoundManager::playSound(sound);
+			bossShotCounter++; // Increment shot count
+			currentReloadTime = reloadTime;
+
+			// Change attack pattern after 2 shots
+			if (bossShotCounter >= 2) {
+				shootingPattern = rand() % 3; // Randomize between 0, 1, 2
+				bossShotCounter = 0; // Reset counter
+			}
+		}
 	}
+#pragma endregion
 
+#pragma region Memory Manage Bullets
 	for (int i = 0; i < bullets.size(); i++)
 	{
 		if (bullets[i]->getPositionX() < 0)
@@ -106,6 +211,7 @@ void Enemy::update()
 			break;
 		}
 	}
+#pragma endregion	
 }
 
 void Enemy::draw()
@@ -118,6 +224,12 @@ void Enemy::SetPlayerTarget(Player* player)
 	playerTarget = player;
 }
 
+void Enemy::takeDamage()
+{
+	health--;
+}
+
+#pragma region Getters
 int Enemy::GetPositionX()
 {
 	return x;
@@ -137,3 +249,14 @@ int Enemy::GetHeight()
 {
 	return height;
 }
+
+int Enemy::getHealth()
+{
+	return health;
+}
+
+bool Enemy::getIsBoss()
+{
+	return isBoss;
+}
+#pragma endregion
