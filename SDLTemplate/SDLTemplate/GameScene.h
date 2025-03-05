@@ -46,6 +46,4 @@ private:
 	SDL_Texture* bgTexture;
 
 	std::vector<Enemy*> spawnedEnemies;
-	std::vector<Explosion*> spawnedExplosions;
-	
 };

@@ -21,15 +21,15 @@ void GameScene::start()
 	bgY = 0;
 	bgWidth = 0;
 	bgHeight = 0;
-	spawnTime = 100;
+	spawnTime = 50;
 	currentSpawnTime = spawnTime;
 	powerUpSpawnTime = 500;
 	currentpowerUpSpawnTime = powerUpSpawnTime;
 
-	for (int i = 0; i < 3; i++)
-	{
-		SpawnEnemy(false);
-	}
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	SpawnEnemy(false);
+	//}
 
 	initFonts();
 	points = 0;
@@ -190,7 +190,7 @@ void GameScene::DoSpawningLogic()
 
 	if (currentSpawnTime <= 0 && !bossExists)
 	{
-		if (points % 20 == 0 && points != 0) 
+		if (points % 20 == 0 && points != 0)
 		{
 			SpawnEnemy(true);
 		}
@@ -215,15 +215,11 @@ void GameScene::DoSpawningLogic()
 	}
 }
 
-
-
 void GameScene::spawnExplosion(int positionX, int positionY)
 {
 	if (!player->IsAlive()) return;
 
 	explosion = new Explosion(positionX, positionY);
 	this->addGameObject(explosion);
-
-	spawnedExplosions.push_back(explosion);
 }
 

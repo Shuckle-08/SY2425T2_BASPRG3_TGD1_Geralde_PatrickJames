@@ -24,6 +24,10 @@ void PowerUp::start()
 void PowerUp::update()
 {
 	y += directionY * speed;
+
+	if (y > SCREEN_HEIGHT) {
+		delete this;
+	}
 }
 
 void PowerUp::draw()

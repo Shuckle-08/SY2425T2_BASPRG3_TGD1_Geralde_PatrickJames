@@ -9,12 +9,15 @@ Enemy::Enemy(bool isBoss) : isBoss(isBoss)
 		directionX = 2;
 		directionY = 0;
 
-		health = 50;
-		shootingPattern = 1;
+		health = 200;
+		shootingPattern = 0;
 
-		reloadTime = 120;
+		reloadTime = 80;
 		currentReloadTime = reloadTime;
 		bossShotCounter = 0;
+
+		// Load Texture
+		texture = loadTexture("gfx/benilde.png");
 	}
 	else {
 		x = rand() % 400 + 200;
@@ -27,6 +30,9 @@ Enemy::Enemy(bool isBoss) : isBoss(isBoss)
 
 		reloadTime = 60;
 		currentReloadTime = reloadTime;
+
+		// Load Texture
+		texture = loadTexture("gfx/enemy.png");
 	}
 }
 
@@ -36,8 +42,7 @@ Enemy::~Enemy()
 
 void Enemy::start()
 {
-	// Load Texture
-	texture = loadTexture("gfx/enemy.png");
+	
 
 	width = 0;
 	height = 0;
@@ -117,30 +122,33 @@ void Enemy::update()
 		if (currentReloadTime <= 0) {
 			switch (shootingPattern) {
 			case 0: // Bullet Line
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 5; i++) {
 					float dx, dy;
+					int spacing = 30;
+
 					if (!playerTarget->IsAlive()) return;
 					calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(), x, y, &dx, &dy);
 
-					Bullet* bullet = new Bullet(x + (width / 2) - 50 + (i * 20), y + height - 10, dx, dy, 10, Side::ENEMY_SIDE);
+					Bullet* bullet = new Bullet(x + (width / 2) - 50 + (i * spacing), y + height - 10, dx, dy, 7, Side::ENEMY_SIDE);
 					getScene()->addGameObject(bullet);
 					bullets.push_back(bullet);
+
+					Bullet* bullet1 = new Bullet(x + (width / 2) - 50 - (i * spacing), y + height - 10, dx, dy, 7, Side::ENEMY_SIDE);
+					getScene()->addGameObject(bullet1);
+					bullets.push_back(bullet1);
+
 				}
 				break;
 
 			case 1: // Double Line Bullet Pattern with Wider Gaps
-				if (currentReloadTime > 0) {
-					currentReloadTime--;
-				}
-
 				if (currentReloadTime <= 0) {
-					for (int i = 0; i < 5; i++) { // Fires 5 bullets in each row
+					for (int i = 0; i < 5; i++) {
 						float dx, dy;
 						if (!playerTarget->IsAlive()) return;
 
 						calcSlope(playerTarget->GetPositionX(), playerTarget->GetPositionY(), x, y, &dx, &dy);
 
-						int spacing = 100; // Increase this value to widen the gaps
+						int spacing = 125; // Increase this value to widen the gaps
 
 						// First row of bullets (Left side)
 						Bullet* bullet1 = new Bullet(x + (width / 2) - 100 + (i * spacing), y + height - 10, dx, dy, 5, Side::ENEMY_SIDE);
@@ -148,20 +156,9 @@ void Enemy::update()
 						bullets.push_back(bullet1);
 
 						// Second row of bullets (Right side)
-						Bullet* bullet2 = new Bullet(x + (width / 2) - 85 + (i * spacing), y + height - 80, dx, dy, 5, Side::ENEMY_SIDE);
+						Bullet* bullet2 = new Bullet(x + (width / 2) - 85 + (i * spacing), y + height - 150, dx, dy, 5, Side::ENEMY_SIDE);
 						getScene()->addGameObject(bullet2);
 						bullets.push_back(bullet2);
-					}
-
-					SoundManager::playSound(sound);
-
-					bossShotCounter++; // Track the number of bullets fired
-					currentReloadTime = reloadTime; // Wait before next wave
-
-					// Change attack pattern after 2 shots
-					if (bossShotCounter >= 2) {
-						shootingPattern = rand() % 3; // Switch to another attack pattern
-						bossShotCounter = 0;
 					}
 				}
 				break;
@@ -181,7 +178,8 @@ void Enemy::update()
 
 			// Play sound after firing
 			SoundManager::playSound(sound);
-			bossShotCounter++; // Increment shot count
+
+			bossShotCounter++;
 			currentReloadTime = reloadTime;
 
 			// Change attack pattern after 2 shots
