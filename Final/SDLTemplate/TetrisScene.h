@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include "SoundManager.h"
 
 const int GRID_WIDTH = 10;
 const int GRID_HEIGHT = 20;
@@ -33,10 +34,13 @@ private:
 
     int dropTimer;
     int dropDelay;
+    int soundTimer;
 
     int score;
     int level;
     int linesCleared;
+
+    Mix_Chunk* sound;
 
     //Initializing
     int gridOffsetX;

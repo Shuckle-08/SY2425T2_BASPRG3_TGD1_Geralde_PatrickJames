@@ -11,6 +11,7 @@ TetrisScene::TetrisScene() {
 
     spawnNewTetromino();
     dropTimer = 0;
+    soundTimer = 120;
     score = 0;
     level = 1;
     linesCleared = 0;
@@ -23,6 +24,9 @@ TetrisScene::TetrisScene() {
     gridOffsetY = (SCREEN_HEIGHT - (GRID_HEIGHT * 32)) / 2;
 
     gameOver = false;
+
+    sound = SoundManager::loadSound("sound/theme.mp3");
+    SoundManager::playSound(sound);
 }
 
 
@@ -35,6 +39,14 @@ void TetrisScene::start() {
 }
 
 void TetrisScene::update() {
+    if (soundTimer > 0) {
+        soundTimer--;
+    }
+    else if (soundTimer = 0) {
+        soundTimer = 120;
+        SoundManager::playSound(sound);
+    }
+
     if (gameOver) return;
 
     Scene::update();
