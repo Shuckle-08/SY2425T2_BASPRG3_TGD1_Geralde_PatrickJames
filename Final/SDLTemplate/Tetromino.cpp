@@ -5,7 +5,6 @@ Tetromino::Tetromino(TetrominoType type) : type(type), posX(3), posY(0) {
 }
 
 void Tetromino::setShape() {
-    // Set up different shapes based on type
     const int shapes[7][4][4] = {
         // I piece
         {{0, 0, 0, 0},

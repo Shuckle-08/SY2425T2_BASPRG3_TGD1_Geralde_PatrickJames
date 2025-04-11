@@ -1,7 +1,7 @@
 #pragma once
 #include "defs.h"
 
-const int TETROMINO_SIZE = 4; // All Tetris pieces are 4x4
+const int TETROMINO_SIZE = 4;
 
 enum TetrominoType { 
     I, O, T, L, J, S, Z };

@@ -2,16 +2,19 @@
 
 TetrisScene::TetrisScene() {
     clearGrid();
-    refillTetrominoBag(); // Fill the bag at start
+    refillTetrominoBag();
     nextTetromino = new Tetromino(tetrominoBag.back());
-    tetrominoBag.pop_back(); // Take the first piece
-   
-    spawnNewTetromino(); // Moves next piece into play
+    tetrominoBag.pop_back();
+
+    holdTetromino = nullptr;
+    holdUsed = false;
+
+    spawnNewTetromino();
     dropTimer = 0;
     score = 0;
     level = 1;
     linesCleared = 0;
-    dropDelay = 30;
+    dropDelay = 50;
 
     initFonts();
 
@@ -32,7 +35,7 @@ void TetrisScene::start() {
 }
 
 void TetrisScene::update() {
-    if (gameOver) return; // Stop game logic if game is over
+    if (gameOver) return;
 
     Scene::update();
     dropTimer++;
@@ -59,17 +62,16 @@ void TetrisScene::draw() {
     drawGrid();
     drawTetromino();
     drawNextPiece();
+    drawHoldPiece();
 
-    drawText(50, 10, 255, 255, 255, TEXT_LEFT, "Score: %d", score);
-    drawText(50, 40, 255, 255, 255, TEXT_LEFT, "Level: %d", level);
+    drawText(30, 10, 255, 255, 255, TEXT_LEFT, "SCORE: %d", score);
+    drawText(30, 50, 255, 255, 255, TEXT_LEFT, "LEVEL: %d", level);
 
     if (gameOver) {
-        drawText((SCREEN_WIDTH / 2) - 100, SCREEN_HEIGHT / 2, 255, 0, 0, TEXT_LEFT, "GAME OVER!");
-        drawText((SCREEN_WIDTH / 2) - 100, SCREEN_HEIGHT / 2 + 30, 255, 0, 0, TEXT_LEFT, "Press R to Restart");
+        drawText((SCREEN_WIDTH / 2), SCREEN_HEIGHT / 2, 255, 0, 0, TEXT_CENTER, "GAME OVER!");
+        drawText((SCREEN_WIDTH / 2), SCREEN_HEIGHT / 2 + 30, 255, 0, 0, TEXT_CENTER, "R TO RESTART!");
     }
 }
-
-
 
 void TetrisScene::clearGrid() {
     for (int y = 0; y < GRID_HEIGHT; y++) {
@@ -132,18 +134,17 @@ void TetrisScene::drawTetromino() {
 }
 
 void TetrisScene::drawNextPiece() {
-    if (!nextTetromino) return; // Safety check
+    if (!nextTetromino) return;
 
-    int previewX = SCREEN_WIDTH - 150; // X position of preview box
-    int previewY = 50;                 // Y position of preview box
-    int boxSize = 100;                  // Size of the preview box
+    int previewX = 50;
+    int previewY = 100;
+    int boxSize = 80;
+    int blockSize = 16;
 
-    // Draw the preview box border
     SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
     SDL_Rect border = { previewX - 10, previewY - 10, boxSize, boxSize };
     SDL_RenderDrawRect(app.renderer, &border);
 
-    // Find Tetromino width & height to center it
     int minX = TETROMINO_SIZE, minY = TETROMINO_SIZE, maxX = 0, maxY = 0;
 
     for (int i = 0; i < TETROMINO_SIZE; i++) {
@@ -163,12 +164,11 @@ void TetrisScene::drawNextPiece() {
     int centerX = previewX + (boxSize / 2) - (tetrominoWidth / 2);
     int centerY = previewY + (boxSize / 2) - (tetrominoHeight / 2);
 
-    // Draw the next piece centered
-    SDL_SetRenderDrawColor(app.renderer, 0, 255, 255, 255); // Light blue for now
+    SDL_SetRenderDrawColor(app.renderer, 255, 165, 180, 255);
     for (int i = 0; i < TETROMINO_SIZE; i++) {
         for (int j = 0; j < TETROMINO_SIZE; j++) {
             if (nextTetromino->getCell(j, i)) {
-                SDL_Rect rect = { centerX + (j - minX) * 20, centerY + (i - minY) * 20, 20, 20 };
+                SDL_Rect rect = { centerX + (j - minX) * blockSize, centerY + (i - minY) * blockSize, blockSize, blockSize };
                 SDL_RenderFillRect(app.renderer, &rect);
             }
         }
@@ -195,14 +195,14 @@ void TetrisScene::spawnNewTetromino() {
         }
     }
 
-    // If the bag is empty, refill it
     if (tetrominoBag.empty()) {
         refillTetrominoBag();
     }
 
-    // Take the next piece from the bag
     nextTetromino = new Tetromino(tetrominoBag.back());
-    tetrominoBag.pop_back(); // Remove it from the bag
+    tetrominoBag.pop_back(); 
+
+    holdUsed = false;
 }
 
 bool TetrisScene::isValidMove(int newX, int newY) {
@@ -225,6 +225,65 @@ bool TetrisScene::isValidMove(int newX, int newY) {
         }
     }
     return true;
+}
+
+void TetrisScene::drawHoldPiece()
+{
+    if (!holdTetromino) return;
+
+    int holdX = 50; 
+    int holdY = 200;
+    int boxSize = 80;
+    int blockSize = 16; 
+
+
+    SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+    SDL_Rect border = { holdX - 10, holdY - 10, boxSize, boxSize };
+    SDL_RenderDrawRect(app.renderer, &border);
+
+    // Center the piece in the hold box
+    int minX = TETROMINO_SIZE, minY = TETROMINO_SIZE, maxX = 0, maxY = 0;
+    for (int i = 0; i < TETROMINO_SIZE; i++) {
+        for (int j = 0; j < TETROMINO_SIZE; j++) {
+            if (holdTetromino->getCell(j, i)) {
+                if (j < minX) minX = j;
+                if (j > maxX) maxX = j;
+                if (i < minY) minY = i;
+                if (i > maxY) maxY = i;
+            }
+        }
+    }
+
+    int tetrominoWidth = (maxX - minX + 1) * 20;
+    int tetrominoHeight = (maxY - minY + 1) * 20;
+
+    int centerX = holdX + (boxSize / 2) - (tetrominoWidth / 2);
+    int centerY = holdY + (boxSize / 2) - (tetrominoHeight / 2);
+
+    SDL_SetRenderDrawColor(app.renderer, 255, 165, 0, 255); // Orange for held piece
+    for (int i = 0; i < TETROMINO_SIZE; i++) {
+        for (int j = 0; j < TETROMINO_SIZE; j++) {
+            if (holdTetromino->getCell(j, i)) {
+                SDL_Rect rect = { centerX + (j - minX) * blockSize, centerY + (i - minY) * blockSize, blockSize, blockSize };
+                SDL_RenderFillRect(app.renderer, &rect);
+            }
+        }
+    }
+}
+
+void TetrisScene::swapHoldPiece() {
+    if (holdUsed) return;
+
+    if (!holdTetromino) {
+        holdTetromino = new Tetromino(*currentTetromino);
+        spawnNewTetromino();
+    }
+    else {
+        std::swap(currentTetromino, holdTetromino);
+        currentTetromino->setPosition(GRID_WIDTH / 2 - 2, 0);
+    }
+
+    holdUsed = true;
 }
 
 void TetrisScene::moveTetromino(int dx, int dy) {
@@ -298,6 +357,9 @@ void TetrisScene::handleInput() {
                     break;
                 case SDLK_UP:
                     rotateTetromino();
+                    break;
+                case SDLK_LSHIFT:
+                    swapHoldPiece();
                     break;
                 }
             }

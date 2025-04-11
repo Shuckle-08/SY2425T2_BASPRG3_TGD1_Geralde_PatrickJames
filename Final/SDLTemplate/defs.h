@@ -8,7 +8,7 @@
 #define MAX_LINE_LENGTH          1024
 
 #define SCREEN_WIDTH             640
-#define SCREEN_HEIGHT            720
+#define SCREEN_HEIGHT            853.33
 
 #define MAX_SND_CHANNELS         8
 

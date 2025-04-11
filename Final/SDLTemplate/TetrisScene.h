@@ -28,6 +28,9 @@ private:
     Tetromino* currentTetromino;
     Tetromino* nextTetromino;
 
+    Tetromino* holdTetromino;
+    bool holdUsed;
+
     int dropTimer;
     int dropDelay;
 
@@ -49,6 +52,8 @@ private:
     void drawNextPiece();
     void spawnNewTetromino();
     bool isValidMove(int newX, int newY);
+    void drawHoldPiece();
+    void swapHoldPiece();
 
     //Controls
     void moveTetromino(int dx, int dy);
